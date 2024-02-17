@@ -1,0 +1,444 @@
+Name : Aditya Pradeep Waghmode
+
+Z number: Z23737910
+
+Subject: Introduction to Data Science
+
+# Part A:
+
+Loading library and data, understanding the data set
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(skimr)
+library(tidyverse)
+library(tidyr)
+
+house_data <- read.csv("C:/Users/USER/Downloads/household_energy_usage_regression.csv")
+house_data
+skim(house_data)
+
+```
+
+-   The dataset named **`house_data`** contains 9969 rows and 6 columns. Out of these columns, one is of character type, and the remaining five are numeric. There are no specified group variables in the dataset.
+
+    -   **`datetime` Variable Summary:**
+
+        -   **Completeness:** The **`datetime`** variable is fully complete with 0 missing values, indicating that all rows have valid timestamps.
+
+        -   **Value Range:** The minimum timestamp is represented as an integer, and the maximum timestamp is also an integer.
+
+        -   **Unique Values:** There are 9968 unique timestamps out of 9969 total rows, suggesting that most timestamps are unique.
+
+        -   **Whitespace:** There are no values with only whitespace characters in the **`datetime`** variable.
+
+    -   **Variable Summaries:**
+
+        1.  **`kwh` (Energy Consumption):**
+
+            -   No missing values, complete for all rows.
+
+            -   Mean energy consumption is approximately 1.97, with a standard deviation of about 1.12.
+
+            -   The data is concentrated between 1.12 and 2.72 based on the histogram.
+
+        2.  **`temperatureF` (Temperature in Fahrenheit):**
+
+            -   86 missing values, approximately 99.14% complete.
+
+            -   Mean temperature is around 77.79°F, with a standard deviation of approximately 7.83°F.
+
+            -   Most temperatures are concentrated between 74.02°F and 82.89°F.
+
+        3.  **`temperatureC` (Temperature in Celsius):**
+
+            -   86 missing values, approximately 99.14% complete.
+
+            -   Mean temperature is about 25.44°C, with a standard deviation of around 4.35°C.
+
+            -   The majority of temperatures fall between 23.34°C and 28.27°C.
+
+        4.  **`humidity` (Humidity):**
+
+            -   86 missing values, approximately 99.14% complete.
+
+            -   Mean humidity is roughly 0.777, with a standard deviation of about 0.138.
+
+            -   Most humidity values are concentrated between 0.68 and 0.89.
+
+        5.  **`dewpointC` (Dewpoint in Celsius):**
+
+            -   86 missing values, approximately 99.14% complete.
+
+            -   Mean dewpoint is approximately 5.60°C, with a standard deviation of about 4.34°C.
+
+            -   The majority of dewpoint values are between 3.50°C and 8.42°C.
+
+    In summary, the dataset contains information about energy consumption, temperature, humidity, and dewpoint for various timestamps. Most variables are almost complete, with a few missing values. Specific data ranges and concentrations are described for each variable, aiding in understanding the data distribution.
+
+Filtering NA values
+
+```{r}
+house_data %>% filter(is.na(temperatureC))
+```
+
+Removing the NA observations
+
+Removing observations with missing values is common in data analysis to prevent errors, maintain data integrity, avoid bias, enable wider use of algorithms, and simplify analysis. However, it should be done thoughtfully, considering dataset specifics. Over-removal may lead to loss of information. Justification and transparency are key, and in some cases, advanced techniques like imputation can be used for missing data.
+
+```{r}
+house_data <- drop_na(house_data,temperatureF,temperatureC,humidity,dewpointC)
+house_data
+skim(house_data)
+```
+
+Checking for out-liners using Box-Plot
+
+```{r}
+ggplot(house_data, aes(y = kwh, fill = "Boxplot")) +
+  geom_boxplot(color = "#2980B9", fill = "#85C1E9", alpha = 0.7, width = 0.5) +
+  ggtitle("Boxplot: Checking Outliers in Energy Consumption (kWh)") +
+  ylab("Energy Consumption (kWh)") +
+  theme_minimal() +
+  theme(axis.text.x = element_blank(),
+        panel.grid.major = element_line(color = "#D5DBDB", size = 0.2),
+        plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+        axis.text.y = element_text(size = 10, color = "#3498DB"),
+        legend.position = "none")
+```
+
+The boxplot illustrates the distribution of energy consumption (kWh) data. The central line inside the box represents the median (1.8 kWh), indicating that half of the data falls below this value. The box represents the interquartile range (IQR) from 1 kWh (Q1) to 3 kWh (Q3), containing the middle 50% of the data. Whiskers extend from 0 kWh to 5 kWh, indicating the range within 1.5 times the IQR. Dots beyond the whiskers represent outliers, suggesting unusual energy consumption values outside the typical range.
+
+As per Box-Plot out-linersare present, now to deal with the outliners
+
+1.  **Calculating Quartiles and IQR:**
+
+    -   **`Q1`** is the first quartile (25th percentile) of the 'kwh' column.
+
+    -   **`Q3`** is the third quartile (75th percentile) of the 'kwh' column.
+
+    -   **`IQR`** is the Interquartile Range, calculated as the difference between Q3 and Q1.
+
+2.  **Defining Upper and Lower Bounds:**
+
+    -   **`lower_bound`** is set at 1.5 times the IQR below Q1.
+
+    -   **`upper_bound`** is set at 1.5 times the IQR above Q3.
+
+3.  **Removing Outliers:**
+
+    -   **`house_data_c`** contains the filtered dataset where the 'kwh' values are greater than the **`lower_bound`** and less than the **`upper_bound`**, effectively removing outliers from the 'kwh' column.
+
+In summary, this code identifies outliers in the 'kwh' column using the IQR method and creates a new dataset **`house_data_c`** without these outliers. Outliers are defined as values falling below **`lower_bound`** or above **`upper_bound`**
+
+```{r}
+# Assuming 'data' is your dataset and 'kwh' is the column containing outliers
+Q1 <- quantile(house_data$kwh, 0.25)
+Q3 <- quantile(house_data$kwh, 0.75)
+IQR <- Q3 - Q1
+
+# Define upper and lower bounds
+lower_bound <- Q1 - 1.5 * IQR
+upper_bound <- Q3 + 1.5 * IQR
+
+# Remove outliers
+house_data_c <- house_data[house_data$kwh > lower_bound & house_data$kwh < upper_bound, ]
+
+house_data_c
+```
+
+Checking if out-liners are minimized
+
+```{r}
+ggplot(house_data_c, aes(y = kwh, fill = "Boxplot")) +
+  geom_boxplot(color = "#3498DB", fill = "#85C1E9", alpha = 0.7, width = 0.5) +
+  ggtitle("Boxplot: Checking Outliers in Energy Consumption (kWh)") +
+  ylab("Energy Consumption (kWh)") +
+  theme_minimal() +
+  theme(axis.text.x = element_blank(),
+        panel.grid.major = element_line(color = "#D5DBDB", size = 0.2),
+        plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+        axis.text.y = element_text(size = 10, color = "#3498DB"),
+        legend.position = "none")
+```
+
+The updated boxplot shows energy consumption data (kWh) after removing outliers using the IQR method. The box ranges from 1 kWh to 3 kWh, representing the middle 50% of the data. There are 11 remaining outliers beyond this range. The median energy consumption is 1.8 kWh.
+
+Removing remaining out-liners by filtering as very few observation are out-lined
+
+```{r}
+house_data_c <- house_data_c%>%filter(kwh<5)
+house_data_c
+```
+
+Converting datetime into numeric value
+
+The code converts the 'datetime' column to POSIXct format, enabling proper handling of date and time. It also creates 'numeric_datetime,' representing time in seconds since a specific reference point. These transformations support time-based analyses and computations.
+
+```{r}
+house_data_c$datetime <- as.POSIXct(house_data_c$datetime, format="%Y-%m-%d %H:%M:%S")
+house_data_c$numeric_datetime <- as.numeric(house_data_c$datetime)
+house_data_c
+```
+
+```{r}
+ggplot(house_data_c, aes(x = datetime, y = kwh, color = "Data Points")) +
+  geom_point(size = 3, alpha = 0.7) +
+  ggtitle("Scatter Plot: Date Time vs. Energy Consumption (kWh)") +
+  xlab("Date Time") +
+  ylab("Energy Consumption (kWh)") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 10, color = "#3498DB"),
+        legend.position = "bottom",
+        legend.title = element_blank(),
+        legend.text = element_text(size = 10))
+```
+
+In this scatter plot, the energy consumption from Oct 2019 to Jan 2020 is starts from 1kwh and goes upto 5kwh it drops in Jan 2020 to 3kwh. From Apr 2020 to Oct 2020 the energy consumption is above 1kwh goes upto 4kwh there some outliner as well.
+
+```{r}
+house_data_c <- house_data_c %>%
+  mutate(
+    hour = hour(datetime),
+    day = day(datetime),
+    month = month(datetime),
+    year = year(datetime))
+house_data_c
+```
+
+This code snippet enhances the **`house_data_c`** dataset by extracting specific time components from the 'datetime' column. Using the dplyr package in R, it creates four new columns: **`hour`**, **`day`**, **`month`**, and **`year`**. The **`hour`** column captures the hour component, **`day`** represents the day of the month, **`month`** captures the month, and **`year`** extracts the year information from the 'datetime' values. These new columns provide a structured breakdown of time-related data, enabling detailed analysis and segmentation based on hourly, daily, monthly, and yearly intervals within the dataset
+
+creating linear regression model
+
+```{r}
+lmodel <- lm(kwh ~ sqrt(temperatureF) + sqrt(dewpointC) + sqrt(humidity), data = house_data_c)
+lmodel
+```
+
+This linear regression model, constructed using the **`lm`** function in R, predicts energy consumption (**`kwh`**) based on square root-transformed predictors: temperature in Fahrenheit (**`temperatureF`**), dewpoint in Celsius (**`dewpointC`**), and humidity (**`humidity`**). The model equation indicates that energy consumption is influenced positively by square root-transformed temperature and negatively by square root-transformed dewpoint and humidity. The intercept of approximately -18.29 represents the baseline energy consumption when all predictor variables are zero. The coefficients represent the change in energy consumption corresponding to a one-unit change in the square root-transformed predictors. Specifically, for every one-unit increase in the square root of temperature, energy consumption increases by about 2.62 units. Conversely, a one-unit increase in the square root of dewpoint reduces energy consumption by approximately 0.42 units, and a one-unit increase in the square root of humidity decreases energy consumption by around 2.25 units.
+
+```{r}
+plot(lmodel)
+```
+
+Plot 1:
+
+Residuals vs Fitted chart shows that the models is mainly lies between 1 to 3.5 fitted values which decreases as move forward and the residuals mainly lies in -2.5 to 1. Helps you assess whether the residuals have a pattern concerning the fitted values. Ideally, you want the residuals to be randomly scattered around the horizontal line at 0. Patterns suggest that your model might be missing some information or is incorrectly specified.
+
+Plot 2:
+
+Standardize vs Theoretical quantiles in Q-Q residuals as linearity from -4 to 4 and grows. Checks if the residuals follow a normal distribution. If the points fall approximately along the diagonal line, your residuals are normally distributed. Deviations indicate departures from normality.
+
+Plot 3:
+
+Scale-Location chart which is Fitted vs root of standardized residuals is gradually decreasing the x and y axis are majorly separated as 1 to 2.5 and 0.5 to 1.5 respectively. Helps identify patterns in the spread of residuals concerning the fitted values. It is useful for detecting homoscedasticity (constant variance of residuals). Ideally, you want the points to be randomly scattered without any specific trend.
+
+Plot 4:
+
+Residuals vs Leverage are distributed from -2 to 2.5 and 0 to 0.100 respectively. And has many outlined data points. Helps you identify influential outliers. Points with high leverage and large standardized residuals can significantly affect your regression results. It's important to check for these influential points that might disproportionately influence your model.
+
+Analyzing these plots together provides valuable insights into the assumptions and performance of your regression model, allowing you to assess its validity and identify potential issues.
+
+```{r}
+lmodel$coefficients
+```
+
+In this linear regression model, the intercept is approximately -18.29. The coefficients for the square root-transformed predictor variables are approximately 2.62 for **`sqrt(temperatureF)`**, -0.42 for **`sqrt(dewpointC)`**, and -2.25 for **`sqrt(humidity)`**. These coefficients indicate the impact of each predictor on the energy consumption (**`kwh`**). Specifically, energy consumption increases with higher square root-transformed temperature (**`temperatureF`**), while it decreases with higher square root-transformed dewpoint (**`dewpointC`**) and humidity (**`humidity`**). The intercept represents the baseline energy consumption when all predictor variables are zero.
+
+```{r}
+summary(lmodel)
+```
+
+This linear regression model predicts energy consumption (**`kwh`**) based on square root-transformed predictors: temperature in Fahrenheit (**`temperatureF`**), dewpoint in Celsius (**`dewpointC`**), and humidity (**`humidity`**). The model shows that energy consumption significantly increases with higher square root-transformed temperature and decreases with higher square root-transformed dewpoint and humidity. The intercept of approximately -18.29 represents the baseline energy consumption when all predictor variables are zero. The coefficients indicate the change in energy consumption corresponding to a one-unit change in the square root-transformed predictors. The model explains around 43.5% of the variance in the data (**`Multiple R-squared: 0.4349`**). The residual standard error is approximately 0.764, and the model is highly statistically significant (**`p-value: < 2.2e-16`**).
+
+```{r}
+confint(lmodel)
+```
+
+-   **(Intercept):** The intercept value falls between approximately -20.65 and -15.93 with 95% confidence.
+
+-   **sqrt(temperatureF):** The coefficient for square root-transformed temperature (**`temperatureF`**) ranges from about 2.33 to 2.91.
+
+-   **sqrt(dewpointC):** The coefficient for square root-transformed dewpoint (**`dewpointC`**) lies between approximately -0.56 and -0.29.
+
+-   **sqrt(humidity):** The coefficient for square root-transformed humidity (**`humidity`**) is between around -2.48 and -2.01.
+
+These confidence intervals provide a range of values within which we can be 95% confident that the true population coefficients exist. They help assess the precision and reliability of the estimated coefficients in the linear regression model.
+
+```{r}
+predict(lmodel, tibble(temperatureF= 75.89, dewpointC= 4.53, humidity = 0.78), interval="confidence")
+
+```
+
+The model is predicting the data approximately up to the point. The estimated coefficient for the square root-transformed variable in the linear regression model is approximately 1.66132. The 95% confidence interval for this coefficient ranges from approximately 1.63908 to 1.68356. This interval provides a range of values within which we can be 95% confident that the true population coefficient exists. It represents the impact of the predictor variable on the response variable (energy consumption) in the model.
+
+# Part B:
+
+Loading library and data, understanding the data set
+
+```{r}
+creditcard<-read.csv("./creditcard.csv")
+head(creditcard,30)
+```
+
+```{r}
+skim(creditcard)
+```
+
+The dataset named "creditcard" contains 284,807 rows and 31 columns. All columns in this dataset are numeric, indicating that it consists of numerical data. There are no group variables specified. This dataset is likely used for numerical analysis and modeling, given the absence of non-numeric data types.
+
+1.  **Time:** This variable has no missing values and covers a range from approximately 0 to 172,792. It shows a bimodal distribution, suggesting specific patterns in transaction times.
+
+2.  **V1 to V28:** These variables are numerical and have no missing values. They have been transformed to maintain confidentiality, as indicated by the absence of specific value information. The variables have varying means, standard deviations, and ranges.
+
+3.  **Amount:** This variable has no missing values and ranges from 0 to 25,691.16. The distribution is highly skewed, with most transactions being of lower amounts.
+
+4.  **Class:** This binary variable indicates whether a transaction is fraudulent (Class = 1) or not (Class = 0). The dataset is highly imbalanced, with a vast majority of non-fraudulent transactions (Class = 0) and a small number of fraudulent transactions (Class = 1).
+
+The provided summary highlights that the dataset does not have any missing values. It includes features related to transaction time, transformed numerical variables (V1 to V28), transaction amounts, and a binary variable indicating fraudulence. Due to the confidentiality transformation, specific interpretations of individual variables are not provided in the summary.
+
+```{r}
+creditcard %>%
+  group_by(Class) %>%
+  summarise(
+    "count" = n(),
+    "Avg_Amount" = round(mean(Amount), 2),
+    "Std_Amount" = round(sd(Amount), 2),  # Standard Deviation of Amount
+    "Avg_Time" = round(mean(Time), 2),
+    "Std_Time" = round(sd(Time), 2)  # Standard Deviation of Time
+  )
+
+```
+
+-   **Class:** Indicates whether the transaction is fraudulent (1) or not (0).
+
+-   **Count:** Number of transactions in each class.
+
+-   **Avg_Amount:** Average transaction amount for each class.
+
+-   **Std_Amount:** Standard deviation of transaction amounts, showing their variability within each class.
+
+-   **Avg_Time:** Average transaction time for each class.
+
+-   **Std_Time:** Standard deviation of transaction times, indicating the variability in timing within each class.
+
+For non-fraudulent transactions (Class 0), there are 284,315 instances with an average transaction amount of \$88.29 (±\$250.11 standard deviation) and an average transaction time of 94,838.20 (±47,484.02 standard deviation).
+
+For fraudulent transactions (Class 1), there are 492 instances with an average transaction amount of \$122.21 (±\$256.68 standard deviation) and an average transaction time of 80,746.81 (±47,835.37 standard deviation).
+
+```{r}
+ggplot(creditcard, aes(x = as.factor(Class), fill = as.factor(Class))) +
+  geom_bar(color = "black", alpha = 0.8) +
+  labs(title = "Fraud Distribution",
+       x = "Class",
+       y = "Count") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +  
+  scale_fill_manual(values = c("#FF5733", "#5DADE2"))
+```
+
+Bar plot visually represents correlations between different columns in a dataset. Columns are listed on both X and Y axes, forming a grid. Each cell's color indicates the correlation strength: dark colors represent strong correlations, light colors represent weak or no correlations. The diagonal line shows self-correlation (always perfect). It helps identify relationships, making data patterns easily recognizable.
+
+```{r}
+creditcard$Class <- as.factor(creditcard$Class)
+```
+
+The **`Class`** column in the **`creditcard`** dataset into a categorical variable, specifically a factor, which is crucial for proper analysis and visualization of fraud (1) and non-fraud (0) categories in the data.
+
+```{r}
+set.seed(123)
+train_indices <- sample(1:nrow(creditcard), 0.7 * nrow(creditcard))
+train_data <- creditcard[train_indices, ]
+test_data <- creditcard[-train_indices, ]
+```
+
+Set a seed for reproducibility, then randomly selects 70% of the rows from the **`creditcard`** dataset as the training data (**`train_data`**) and the remaining 30% as the testing data (**`test_data`**). The **`set.seed(123)`** ensures that the random sampling is consistent each time the code is run, providing reliable results for model training and evaluation.
+
+```{r}
+cred_model <- glm(formula = Class ~ .,
+                  data = train_data,
+                  family = 'binomial')
+```
+
+A logistic regression model (**`cred_model`**) using the **`glm`** function in R. The model predicts the binary outcome variable **`Class`** based on all other variables in the **`train_data`** dataset. Logistic regression is used for binary classification problems, and the model is trained to predict the probability of a transaction being fraudulent (**`Class`** 1) or not (**`Class`** 0) based on the input features in **`train_data`**. The **`family = 'binomial'`** argument specifies the logistic regression family, indicating that the response variable follows a binomial distribution.
+
+```{r}
+summary(cred_model)
+```
+
+-   **Coefficients:** This section shows the estimated coefficients for each predictor variable. The coefficients represent the change in the log-odds of the response variable for a one-unit change in the predictor variable. A positive coefficient indicates a positive association with the response variable (**`Class`**), while a negative coefficient indicates a negative association.
+
+-   **Z value and Pr(\>\|z\|):** These values represent the z-score and associated p-value for each coefficient. The z-score measures how many standard deviations a coefficient is away from zero. The p-value indicates whether the coefficient is statistically significant. Commonly, a threshold of 0.05 is used; if the p-value is less than 0.05, the coefficient is considered significant.
+
+-   **Significance Codes:** The significance codes (\*, \*\*, \*\*\*, etc.) indicate the level of significance. For example, \*\*\* means highly significant (p \< 0.001), \*\* means significant (0.001 \< p \< 0.01), and \* means moderately significant (0.01 \< p \< 0.05).
+
+-   **Deviance:** Deviance is a measure of how well the model fits the data. Null deviance represents the deviance for a model with only the intercept (no predictors), while residual deviance represents the deviance for the fitted model. Lower deviance indicates a better fit. In this case, the residual deviance is significantly lower than the null deviance, indicating that the model with predictors is a better fit for the data.
+
+-   **AIC:** AIC (Akaike Information Criterion) is a measure of the model's goodness of fit. It penalizes the addition of more variables, and lower AIC values indicate a better-fitting model.
+
+-   **Number of Fisher Scoring iterations:** It shows how many iterations were performed to estimate the model parameters using the Fisher Scoring method, an iterative optimization technique used in logistic regression.
+
+In summary, this output provides insights into the relationships between predictor variables and the likelihood of a credit card transaction being fraudulent (**`Class`** 1) or not (**`Class`** 0). It also helps in understanding the statistical significance of each predictor in predicting the outcome.
+
+```{r}
+plot(cred_model)
+```
+
+```{r}
+# Predicting probabilities
+predicted_prob <- predict(cred_model, newdata = test_data, type = "response")
+
+# Converting probabilities to class predictions
+predicted_class <- ifelse(predicted_prob > 0.5, 1, 0)
+
+# Confusion Matrix of test data
+conf_matrix <- table(test_data$Class, predicted_class)
+conf_matrix
+
+# Calculate accuracy & precision 
+accuracy <- sum(diag(conf_matrix)) / sum(conf_matrix)
+precision <- conf_matrix[2, 2] / sum(conf_matrix[, 2])
+
+cat("Accuracy:", accuracy, "\n")
+
+
+
+```
+
+-   **True Negatives (TN):** 85,275 - The number of instances correctly predicted as class 0.
+
+-   **False Positives (FP):** 14 - The number of instances incorrectly predicted as class 1 when they are actually class 0.
+
+-   **False Negatives (FN):** 60 - The number of instances incorrectly predicted as class 0 when they are actually class 1.
+
+-   **True Positives (TP):** 94 - The number of instances correctly predicted as class 1.
+
+-   **Accuracy:** Accuracy measures the overall correctness of the model and is calculated as (TN + TP) / (TN + FP + FN + TP). In this case, the accuracy is 99.91%, indicating that the model correctly predicts the class for 99.91% of the instances.
+
+In summary, the model has a high accuracy, meaning it correctly predicts the majority of transactions. Additionally, the precision is also high, indicating a good ability to correctly identify fraudulent transactions. These metrics suggest that the model performs well in distinguishing between fraudulent and non-fraudulent credit card transactions.
+
+# Summary: 
+
+1.  **Predictors' Impact:** The logistic regression coefficients represent the impact of each predictor variable on the log-odds of the response variable (Class). Positive coefficients (e.g., V1, V4, V21) indicate a positive association with fraud, while negative coefficients (e.g., V10, V14, V28) indicate a negative association.
+
+2.  **Significance Levels:** The significance codes (\*\*\*, \*\*, \*, .) show the level of significance for each predictor. Lower p-values indicate higher significance. For example, variables with \*\*\* are highly significant (p \< 0.001), indicating a strong relationship with the response variable.
+
+3.  **Deviance:** Deviance measures how well the model fits the data. Lower residual deviance (1559.0) compared to null deviance (4988.2) indicates the model's improvement over the null model, suggesting it provides meaningful insights.
+
+In the linear regression summary:
+
+1.  **Coefficients:** Coefficients represent the change in the dependent variable (kwh) for a one-unit change in the predictor variable. For example, for every one-unit increase in the square root of temperature (F), kwh increases by 2.62 units.
+
+2.  **Residuals:** Residuals indicate the differences between observed (actual) and predicted values. Smaller residuals indicate a better fit of the model to the data.
+
+3.  **Multiple R-squared:** R-squared (0.4349) measures the proportion of the variance in the dependent variable (kwh) that is predictable from the independent variables. An R-squared closer to 1 indicates a better fit of the model.
+
+# **Conclusion:**
+
+-   **Logistic Regression:** The logistic regression model provides insights into the likelihood of fraud (Class = 1) based on predictor variables. Significant predictors positively/negatively influence fraud likelihood. The model has a good fit (indicated by deviance) and can help identify potential fraud transactions.
+
+-   **Linear Regression:** The linear regression model predicts energy consumption (kwh) based on temperature, dewpoint, and humidity. These variables explain 43.49% of the variance in energy consumption. The model shows a statistically significant relationship between predictors and energy consumption.
+
+In summary, the logistic regression model is suitable for predicting binary outcomes (fraud vs. non-fraud), while the linear regression model predicts a numeric outcome (energy consumption) based on the given predictors. Both models provide valuable insights into their respective domains.

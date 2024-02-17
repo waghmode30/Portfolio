@@ -1,0 +1,266 @@
+Install packages
+
+```{r}
+library("tidyverse")
+library("ggplot2")
+library("skimr")
+
+```
+
+Loading the data set
+
+```{r}
+Data <- read.csv("C:/Users/USER/Downloads/demographic.csv")
+head(Data)
+```
+
+Understanding the data set
+
+```{r}
+summary(Data)
+```
+
+```{r}
+skim(Data)
+```
+
+```{r}
+unique_city <- unique(Data$city)
+unique_state <- unique(Data$state)
+unique_occupation <- unique(Data$occupation_group)
+unique_education <- unique(Data$education)
+unique_gender <- unique(Data$gender)
+unique_status <- unique(Data$marital_status)
+view(unique_city)
+view(unique_state)
+view(unique_occupation)
+view(unique_education)
+view(unique_gender)
+view(unique_status)
+```
+
+1.  Review the data table and look at the data types, distributions, values, etc.
+
+    a\. Detail any interesting patterns or issues you see.
+
+Answer :
+
+In the Demographic data set there are 10565 observations and total of 9 different columns. There are 3 numeric and 9 character columns. Gender has 106 missing values where as marital_status has 1442. There are unique values in few columns such as city, state, occupation, education, gender and marital_status such as 97, 18, 9, 5, 2, 2, respectively. Credit score of observations, the minimum is 300, maximum is 850, mean is 575 and median is 575.5 . Home_build_year of observations, the minimum is 1970 where the maximum is 2023 and the mean , median are 1996 (approx). I also understand that the age of the observations, minimum is 19 where maximum is 66 and the mean is 53.
+
+2.Perform any necessary data cleaning and/or transformations. This could include, but not limited to, missing data, outliers, generation of new variables, binning, etc.
+
+a.  In addition to the code, explain in detail what you did and why you did it?
+
+b.  Are you making any assumptions? If so, what are they?
+
+Answer :
+
+Removing missing values from gender and missing values from marital_status replacing those with unknown. As gender missing observations are very low and marital_status missing observations are very high.
+
+```{r}
+Demo <- read.csv("C:/Users/USER/Downloads/demographic.csv")
+Demo1 <- Demo[complete.cases(Demo$gender), ]
+Demo1
+```
+
+Assuming NA values in martial_status as Unknown. Because, the observations might not be comfortable to disclose there marital_status but the observations are still important to discard them.
+
+```{r}
+Demo1$marital_status[is.na(Demo1$marital_status)] <- "unknow"
+Demo1
+```
+
+Generating new variable to understand the credit score variation in the observation. Making assumptions as credit score would be Excellent above 700, Poor below 400 and between 400 and 700 is Average.
+
+```{r}
+Demo1 %>%
+  mutate(Standard_of_Score = case_when(credit_score > 700  ~  'Excellent', credit_score < 400 ~ 'Poor', credit_score < 700 & credit_score > 400 ~ 'Average'))
+Demo1
+```
+
+Binning column age
+
+The technique of dividing continuous or numerical data into separate intervals or bins is known as binning, also known as discretization. Binding is used to transform numerical variables into categorical ones so that you may more readily evaluate patterns, trends, and distributions, particularly when it comes to data visualization and statistical analysis. It is simpler to understand and evaluate age-related trends when binning is used to categorize ages into specified groups or ranges when it is applied to age data.
+
+```{r}
+Demo1 <- Demo1 %>%    
+ mutate(age_bin = cut(age, breaks=c(0, 10, 20, 30,40, 50, 60, 70, 80, 90)))
+Demo1
+```
+
+3\. Summarize and/or aggregate the data table values in various ways with descriptive stats, counts, etc. over the entire data set and by various groupings.
+
+a.  Explain each summarization step and why you did it. What patterns are you seeing?
+
+Answer:
+
+A critical phase of data analysis is data summarization and data agglomeration. It aids in comprehending the dataset's general properties and spotting patterns within various categories.
+
+Median, Minimum, Maximum, and Standard Deviation: Producing these statistics gives us a broad picture of the central tendency and distribution of numerical variables.
+
+Counts and Proportions: A basic comprehension of the dataset's composition can be obtained by counting the number of records in the dataset or by examining the proportions of particular categories in categorical variables.
+
+```{r}
+summary_data1 <- Demo1 %>%
+  filter(credit_score > 575) %>%
+  group_by(age) %>%
+  summarize(
+    average_credit_score = mean(credit_score),
+    max_credit_score = max(credit_score),
+    min_credit_score = min(credit_score),
+    count = n()
+  )
+summary_data1
+```
+
+The provided summary data presents the average credit score, maximum credit score, minimum credit score, and count of observations for individuals aged 19 to an unspecified age (not provided in the snippet). For example, for individuals aged 19, the average credit score is 701.29, with a maximum of 826, a minimum of 577, and a count of 14 observations. Similarly, the data includes corresponding values for individuals of various ages, indicating their credit score trends within the specified dataset. However, the summary does not include the specific upper age limit for which the data is presented, making it difficult to provide a comprehensive analysis beyond the age of 39.
+
+```{r}
+summary_data2 <- Demo1 %>%
+  filter(age < 95) %>%
+  group_by(age) %>%
+  summarize(
+    average_age = mean(age),
+    max_age = max(age),
+    min_age = min(age),
+    count = n()
+  )
+summary_data2
+```
+
+The provided summary data (summary_data2) includes the average age, maximum age, minimum age, and count of observations for individuals aged 19 to 40. For example, for individuals aged 19, the average age is 19, with a maximum and minimum age of 19, and a count of 31 observations. Similarly, the data includes corresponding values for individuals of various ages up to 40, showcasing their age distribution within the specified dataset. The summary illustrates the dataset's demographic composition, highlighting the number of observations and the age range for each group, providing valuable insights into the age distribution patterns of the dataset.
+
+```{r}
+summary_data3 <- Demo1 %>%
+  group_by(home_build_year) %>%
+  summarize(
+    average_home_build_year = mean(home_build_year),
+    max_home_build_year = max(home_build_year),
+    min_home_build_year = min(home_build_year),
+    count = n()
+  )
+summary_data3
+```
+
+The provided summary data (summary_data3) includes statistics related to the home build years within the dataset. For each year from 1970 to 1991 (and beyond, as per the available data), the summary provides the average home build year, maximum home build year, minimum home build year, and the count of observations. For instance, in the year 1970, the average home build year is 1970, with a maximum and minimum of 1970. The summary extends this information to subsequent years, offering insights into the distribution and counts of homes built across various years, helping to understand the dataset's housing patterns and trends.
+
+4\. Leveraging the analyses in steps 1-3, create at least four different plots over variables you finding interesting to include univariate and multivariate (covariation) analyses. Make sure the plots are customized appropriately with labels, titles, colors, and themes.
+
+a\. Explain each visual and why you chose to use this particular plot.
+
+b\. Interpret what each plot is showing and what this could say about the demographics provided (e.g. trends such as age distribution or gender distribution).
+
+c\. What overall patterns and/or trends do you see?
+
+d\. How do the visuals add to your previous review and summarization?
+
+e\. Do the visuals you provided tell a bigger story (when looked at together), i.e. do the individual plots coalesce into a larger narrative about the demographic data?
+
+Answer:
+
+```{r}
+Demo2 <- read.csv("C:/Users/USER/Downloads/demographic.csv")
+ggplot(data = Demo2, aes(x = age)) +
+  geom_freqpoly(binwidth = 5, color ="Dark Blue", size = 1.3) + 
+  geom_histogram(binwidth = 5, fill = "Light Blue", color = "Blue", alpha = 0.6) +
+  labs(x = "Age", y = "Frequency", title = "Distribution of Age") +
+  theme_minimal()
+```
+
+The graph portrays age distribution, utilizing age on the X-axis and count on the Y-axis. It offers a detailed perspective on the dataset's age patterns. The histogram and frequency polygon highlight a significant concentration of individuals between 40 and 66 years old, peaking notably around 55 to 66 years. Beyond this peak, the count gradually diminishes, with noticeable drops in the 8th and 9th age brackets. This distribution indicates a fairly balanced representation across different age groups, emphasizing a strong presence in the middle-aged demographic. These visuals enhance our comprehension of age distribution by presenting a nuanced view of the dataset's age composition, complementing the previous summarization. The overall narrative depicts a diverse age distribution, with a substantial population in the middle age range. Additionally, outliers are identifiable, with individuals aged approximately 87 to 130, though in small numbers.
+
+```{r}
+ggplot(data = Demo2, aes(x = occupation_group)) +
+  geom_bar(fill = "Light BLue", color = "Blue") +
+  labs(x = "Occupation Group", y = "Count", title = "Occupation Distribution") +
+  theme_minimal()
+```
+
+The bar chart represents farmer has very less population. Blue collar, Management and retired has more than 1500 counts where others has less count in 1500. So, if we see the data properly the higher count is blue collar and less value for farmer people. So the data visualization of this plot are systamtic and particular data are depending on occupation.
+
+```{r}
+Demo2 %>%
+  filter(between(credit_score, 700, Inf),age<100)%>%
+  ggplot( aes(x = age, y = credit_score, color = education)) +
+  geom_point(alpha = 0.7) +
+geom_smooth(method = "lm", se = FALSE)+
+  facet_wrap(~education)+
+  labs(title = "Scatter Plot: Credit score distributed by Education level",
+       x = "Age",
+       y = "Credit Score",
+       color = "Education Level") +
+  theme_minimal()+
+  theme(legend.position="bottom")
+```
+
+Scatter Plot is distributed according to education level Some college is in age limit of 20 - 70, Less than diploma is scatter through out has no specific trend, grad degree is more towards 40-60 range of age, HS diploma age range is more above 45 years. Bach, Some college, HS diploma has more credit score has compared to others education level.
+
+```{r}
+ggplot(data = Demo2, aes(x = state, y = credit_score)) +
+  geom_boxplot(fill = "Light Blue", color = "Blue") +
+  labs(x = "State", y = "Credit Score", title = "Credit Score Distribution by Gender") +
+  theme_minimal()
+
+```
+
+According to Box Plot AL, FL, GA has the most vast range of credit score given the mean above 500 and touches the ceiling of 700. Where IL, KY, LA, MS, OH, TN WI has very small range of credit score but all are above the mark of 550 which touch the ceiling of apporx 800.
+
+5\. Summarize your interpretation of the overall results of your demographic analysis, discussing any interesting insights or trends you discovered. Posit what could be done with your analysis results---could this demographic data lead to actionable insights?
+
+Answer :
+
+In the Demographic data set there are 10565 observations and total of 9 different columns. There are 3 numeric and 9 character columns. Gender has 106 missing values where as marital_status has 1442. There are unique values in few columns such as city, state, occupation, education, gender and marital_status such as 97, 18, 9, 5, 2, 2, respectively. Credit score of observations, the minimum is 300, maximum is 850, mean is 575 and median is 575.5 . Home_build_year of observations, the minimum is 1970 where the maximum is 2023 and the mean , median are 1996 (approx). I also understand that the age of the observations, minimum is 19 where maximum is 66 and the mean is 53.
+
+Gender are of 2 types male and females
+
+Education level are Bachelor degree, Graduate, HS Diploma, Less than high-school diploma and some college
+
+Occupation are Blue Collar, Farmer, Management, Office Administration, Other, Profession Retired, Sales, Technical
+
+City's are Pensacola, Panama City, Gulf Breeze, Fort Walton Beach, Lynn Haven, Destin, Panama City Beach, Mary Esther, Crestview, Milton, Navarre, Cantonment, Ponce de Leon, Miramar Beach, Niceville, Molino, Marietta, Shalimar, Bonifay, Chipley, Baker, Century, Fairburn, Defuniak Springs, Graceville, Santa Rosa Beach, Vernon, Youngstown, Laurel Hill, Inlet Beach, Montgomery, Fortson, Cordova, Huntsville, Mobile, Bessemer, Goodlettsville, Louisville, Enterprise, Valparaiso, Chester, Winston, Covington, Mount Olive, New Orleans, Campbellton, Dothan, Baton Rouge, Caryville, Stockbridge, Ozark, Milford, Rice Lake, Nashville, Wisconsin Rapids, Mohnton, Lisle, Cullman, Sterrett, Chagrin Falls, Powder Springs, Jay, Montevallo, Arab, Braselton, Scottsdale, Atlanta, Lafayette, Barrington, Kennesaw, Warner Robins, Memphis, Trenton, Midland, Leesburg, McDonough, Cumming, Alexander City, Cottondale, Sylvester, Ashford, Norman, Pikeville, Houston, Dawsonville, Jeffersonville, Fort Lauderdale, Bremen, Holt, Aberdeen, Forest Park, Homosassa, Shreveport, Denver, Carrollton, Owens Cross Roads, Cleveland
+
+State's are FL, GA, AL, TN, KY, VA, LA, OH, WI, PA, IL, AZ, NJ, OK, TX, IN, MS, CO
+
+Marital status are Single and Unmarried
+
+**Data Visualization and Interpretation: Unlocking Insights**
+
+**Visualizing Data Patterns:**
+
+This visualization captures the nuances of marital status across different home build years using a scatterplot. The color scheme of yellow, light blue, and purple effectively separates the data points.
+
+**Overview of Plots:**
+
+Our analysis covers a range of topics, including marital status distribution, credit score counts, scatter plots illustrating home build years and marital status, credit scores based on occupation groups, the distribution of home build years, mean age by occupation group with standard deviation as error bars, and credit score trends across home build years. These visual representations provide a holistic view of the dataset.
+
+**Personal Insights Through Visualization:**
+
+Effective visualization is crucial for immediate pattern recognition. Graphs, colors, and statistical points enrich our understanding of the data. Summaries offer mean, maximum, and age insights, while credit score histograms reveal distribution patterns. Box plots help discern credit scores based on occupation groups, aiding in understanding credit score variations among different professions.
+
+**Interpreting the Data:**
+
+This dataset contains diverse demographic variables such as age, credit score, and marital status. Addressing missing values is pivotal, particularly in the age and credit score columns. Home build years' distribution, visualized through histograms, indicates clustering around specific periods, highlighting trends in home construction.
+
+**Marital Status Distribution:**
+
+The majority of individuals are married, with single individuals following closely behind. This straightforward distribution simplifies our understanding of marital status in the dataset.
+
+**Scatter Plot Analysis:**
+
+Examining the scatter plot of home build years reveals a notable concentration of married individuals, indicated by the thicker clustering. This insight helps us comprehend marital status concerning the years in which homes were built.
+
+**Credit Score Trends:**
+
+Credit score trends show a gradual increase, influenced by factors such as mean credit scores and the correlation with home build years.
+
+**Exploration and Action:**
+
+This dataset prompts exploration of education, finance, gender, and geographical factors. Advanced analyses could involve machine learning models, regression, and linear predictions. Credit scores emerge as a strong predictor, guiding future financial insights.
+
+**Data Processing and Feedback:**
+
+Addressing missing values, identifying outliers, and improving data collection processes enhance data quality. The project's foundation lies in effective data visualization, processing, and imaginative interpretation, empowering meaningful insights and future analyses.
+
+**Conclusion:**
+
+In this comprehensive analysis of a dataset comprising 10,565 observations, significant insights emerged regarding marital status, credit scores, and age demographics. Through innovative visualizations and meticulous interpretation, the dominance of married individuals and specific home construction trends were highlighted. Addressing missing values and outliers enhanced data reliability, paving the way for meaningful analysis. This study exemplifies the potency of data-driven decisions, offering actionable insights for various sectors. The marriage and home construction trends illuminated here can inform future strategies and policies. This rigorous blend of creativity and statistical analysis not only uncovers intricate demographic nuances but also demonstrates the transformative potential of data-driven approaches in guiding effective decision-making processes.

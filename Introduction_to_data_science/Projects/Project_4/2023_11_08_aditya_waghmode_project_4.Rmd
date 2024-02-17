@@ -1,0 +1,468 @@
+[***Name***]{.underline}***: Aditya Pradeep Waghmode***
+
+[***Z number***]{.underline}***: Z23737910***
+
+[***Subject***]{.underline}***: Introduction to Data Science***
+
+[***Project***]{.underline}***: 4***
+
+# Loading the required library's
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(skimr)
+library(tidyverse)
+library(tidyr)
+```
+
+-   dplyr: The dplyr package provides a set of functions for data manipulation. It is part of the tidyverse suite of packages and is widely used for data cleaning, wrangling, and transforming.
+
+-   ggplot2: The ggplot2 package is a powerful tool for creating graphics and visualizations. It is known for its flexibility and ability to produce high-quality plots with minimal code.
+
+-   skimr: The skimr package is a handy tool for summarizing data frames. It provides a concise and informative overview of the data, including variable types, missing values, and descriptive statistics.
+
+-   tidyverse: The tidyverse is a collection of packages that share a common philosophy and API. It includes dplyr, ggplot2, skimr, and several other packages that make it easy to work with data in a consistent and efficient manner.
+
+-   tidyr: The tidyr package provides functions for data transformation and reshaping. It is particularly useful for converting data between long and wide formats and vice versa.
+
+# Loading the Data Set
+
+```{r}
+mall_data <- read.csv("C:\\Users\\USER\\Downloads\\Mall_Customers2.csv")
+mall_data
+skim(mall_data)
+```
+
+[**Summary:**]{.underline}
+
+The dataset mall_data consists of 200 rows and 5 columns. All columns are of numeric or character data type. Currently, there are no group variables defined.
+
+The dataset includes a character column named "Gender" with no missing values. The data is complete in this column. The minimum value of the "Gender" column is 4 and the maximum value is 6. The column does not contain any empty or whitespace-only values. There are 2 unique values in the "Gender" column.
+
+The dataset includes four numerical variables: CustomerID, Age, Annual_Income, and Spending_Score. No missing values exist for any of these variables. The CustomerID variable ranges from 1 to 200, with an average value of 100.50. The Age variable spans from 18 to 70, with an average value of 38.85 and a standard deviation of 13.97. The Annual_Income variable ranges from 15,000 to 137,000, with an average value of 60.56(thousands) and a standard deviation of 26.27. The Spending_Score variable ranges from 1 to 99, with an average value of 50.20 and a standard deviation of 25.82.
+
+# Transforming the data for Analysis
+
+```{r}
+names(mall_data)[4] <- paste('AnnualIncome')
+names(mall_data)[5] <- paste('SpendingScore')
+mall_data <- mall_data[,2:5]
+summary(mall_data)
+```
+
+-   We create a new variable called 'AnnualIncome' and assign it to the existing variable 'Spending Score' using the assignment operator \<\<-.
+
+-   We rename the existing variable 'Spending Score' to 'SpendingScore' using the names() function.
+
+-   We extract the columns we need for our analysis, which are the customer's 'Age', 'Annual Income', and 'Spending Score'.
+
+[**Summary:**]{.underline}
+
+Gender: There are two unique values: "Female" and "Male".
+
+Age: The average age is 38.85 years old. The middle half of the customers range from 28.75 to 49 years old.
+
+AnnualIncome: The average annual income is 60.56 thousand dollars. The middle half of the customers earn between 41.5 and 78 thousand dollars annually.
+
+SpendingScore: The average spending score is 50.20. The middle half of the customers have a spending score between 34.75 and 73.0.
+
+# Performing Exploratory Data Analysis (EDA)
+
+```{r}
+ggplot(mall_data, aes(x = Age)) +
+  geom_histogram(binwidth = 5, color = "blue", alpha = 0.7, fill = "skyblue") +
+  geom_freqpoly(binwidth = 5, color = "red", size = 1) +  # Add frequency polygon
+  labs(title = "Age of Customers", x = "Age", y = "Count") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14, face = "bold"))
+```
+
+Examining the age distribution of customers reveals a significant concentration within the 30 to 35-year-old demographic, with over 35 members falling within this age bracket. The distribution skews to the right, indicating a higher density of customers on the younger end (40 years old or younger) compared to the older end.
+
+```{r}
+ggplot(mall_data, aes(x = AnnualIncome)) +
+  geom_histogram(binwidth = 30, color = "blue", alpha = 0.7, fill = "skyblue") +
+  geom_freqpoly(binwidth = 30, aes(color = Gender), size = 1) +
+  labs(title = "Distribution of Customer Features",
+       x = "Annual Income", y = "Count") +
+  facet_wrap(~ Gender, scales = "free_y", ncol = 2) +
+  scale_x_continuous(labels = scales::dollar_format(scale = 1, suffix = "k")) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14, face = "bold"))
+```
+
+Regarding customers' annual income, the distribution exhibits a resemblance to the age distribution mentioned earlier, albeit with a more pronounced disparity between the left and right-hand sides of the histogram. A significant portion of customers earns up to 80 thousand dollars annually, while incomes surpassing this threshold are much less common, indicating a substantial imbalance in income levels among the customer base. While we can see that the women customers are higher in 40 thousand bracket as compared to men and even the count oof women earning 120 thousands is more comparatively where as men earning 40 thousands are less but we can see that the few men has gradual income in the bracket of 120 and 160 thousands.
+
+```{r}
+ggplot(mall_data, aes(x = SpendingScore)) +
+  geom_histogram(binwidth = 5, color = "white", alpha = 0.7, fill = "orange") +
+  geom_density(alpha = 0.3, color = "blue") +
+  geom_freqpoly(binwidth = 5, color = "red", size = 1) +  # Add frequency polygon
+  labs(title = "Spending Score of Customers", x = "Spending Score", y = "Density") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14, face = "bold"))
+```
+
+The spending score of customers exhibits a distribution that closely resembles a normal curve, standing out as the most bell-shaped among the three variables. The majority of observations cluster around the mean value of 50. Notably, both tails of the distribution display substantial numbers of observations, indicating a considerable presence of customers who spend either very frugally or extravagantly. This implies a diverse range of spending behaviors within the customer base.
+
+The subsequent phase of my analysis involves creating visualizations to depict the relationship between Annual Income and Spending Score concerning Age and Gender. These visualizations aim to draw initial meaningful insights from the mall customers dataset, paving the way for more comprehensive conclusions.
+
+```{r}
+ggplot(mall_data, aes(x = Age, y = AnnualIncome, color = Gender)) +
+  geom_point(size = 4, alpha = 0.7) +
+  geom_smooth(color = "purple", linetype = "dashed") +
+  labs(title = "Age vs. Annual Income by Gender", x = "Age", y = "Annual Income") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14, face = "bold"))
+```
+
+```{r}
+ggplot(mall_data, aes(x = Age, y = SpendingScore, color = Gender)) +
+  geom_point(size = 4, alpha = 0.7) +
+  geom_smooth(method = "loess", color = "purple", linetype = "dashed") +
+  labs(title = "Age vs. Spending Score by Gender", x = "Age", y = "Spending Score") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14, face = "bold"))
+```
+
+```{r}
+ggplot(mall_data, aes(x = AnnualIncome, y = SpendingScore, color = Gender)) +
+  geom_point(size = 4, alpha = 0.7) +
+  geom_smooth(method = "loess",se=FALSE, color = "purple", linetype = "dashed") +
+  labs(title = "Annual Income vs. Spending Score by Gender", x = "Annual Income", y = "Spending Score") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14, face = "bold"))
+```
+
+In the initial plot, it becomes evident that individuals aged between 30 and 50 exhibit the highest incomes. The second plot reveals that the most extravagant spenders are predominantly under 40 years old, as customers above this age tend to be more conservative, with Spending Scores peaking around 60 points. However, the most intriguing patterns emerge in the final plot. Observations cluster in several distinct areas: a sizable group in the middle and smaller groups in the plot's corners. Interestingly, gender appears to have minimal impact when analyzing the income and spending patterns of customers.
+
+```{r}
+ggplot(mall_data, aes(x = AnnualIncome, y = Age, fill = Gender)) +
+  geom_boxplot(color = "black", width = 0.5) +
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "top", legend.title = element_blank()) +
+  scale_fill_manual(values = c("Male" = "blue", "Female" = "pink")) +
+  labs(
+    title = "Box Plot: Annual Income vs Age",
+    x = "Annual Income",
+    y = "Age",
+    fill = "Gender"
+  )
+```
+
+The box plot analysis reveals distinct patterns in the demographic characteristics of the mall visitors based on gender. For women, the interquartile range (IQR) of age spans from 28 to 48, with a median age of 35. The annual income for women falls between 25k and 75k, indicating a relatively lower income range compared to men. In contrast, men exhibit a wider IQR for annual income, ranging from 75k to 125k, and an age range from 27 to 52. The median age for men is approximately 36 years. This suggests that, on average, women visiting the mall are younger and have lower annual incomes compared to their male counterparts. The data implies potential market segmentation opportunities for businesses in the mall, tailoring their products and services to different income brackets and age groups based on gender, to better cater to the diverse needs and preferences of their clientele.
+
+```{r}
+ggplot(mall_data, aes(x = SpendingScore, y = Age, fill = Gender)) +
+  geom_boxplot(color = "black", width = 0.5) +
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "top", legend.title = element_blank()) +
+  scale_fill_manual(values = c("Male" = "blue", "Female" = "pink")) +
+  labs(
+    title = "Box Plot: Spending Score vs Age",
+    x = "Spending Score",
+    y = "Age",
+    fill = "Gender"
+  )
+```
+
+The box plot analysis of Spending Score versus Age reveals intriguing patterns in the shopping behavior of mall visitors based on gender and age groups. Men, aged between 27 and 51, exhibit a relatively conservative spending pattern, with their spending scores ranging from above 0 to nearly 50. In contrast, women between the ages of 29 and 47 display a more indulgent spending behavior, with their spending scores ranging from above 50 to below 90. The median spending score for men is approximately 37, while for women, it is around 35. This suggests that, on average, women in this age group tend to have higher spending scores compared to men, indicating a greater willingness to spend on products and services. This insight could be invaluable for businesses in the mall, helping them tailor their marketing strategies and offerings to better attract and engage their target audience based on both gender and age, thereby maximizing their revenue opportunities.
+
+```{r}
+ggplot(mall_data, aes(x = SpendingScore, y = AnnualIncome, fill = Gender)) +
+  geom_boxplot(color = "black", width = 0.5) +
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "top", legend.title = element_blank()) +
+  scale_fill_manual(values = c("Male" = "blue", "Female" = "pink")) +
+  labs(
+    title = "Box Plot: Spending Score vs Annual Income",
+    x = "Spending Score",
+    y = "Annual Income",
+    fill = "Gender"
+  )
+```
+
+The Box plot comparing Spending Score versus Annual Income unveils intriguing spending trends among men and women. Men exhibit a narrower spending range, with scores hovering between 0 and 50, corresponding to an annual income range of 48 to 80; however, a single outlier suggests occasional higher spending among men. In contrast, women showcase a broader spending spectrum, ranging from above 50 to almost 100, corresponding to an income range of 30 to 80, without any outliers. This pattern suggests that women's spending behavior is more diverse and consistent across various income levels, indicating a wider range of preferences and financial habits. These findings highlight the importance of understanding gender-specific spending patterns, enabling businesses to tailor their marketing strategies to cater effectively to the nuanced needs and preferences of both male and female customers.
+
+```{r}
+ggplot(mall_data, aes(x = AnnualIncome, y = SpendingScore, fill = Gender)) +
+  geom_boxplot(color = "black", width = 0.5) +
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "top", legend.title = element_blank()) +
+  scale_fill_manual(values = c("Male" = "blue", "Female" = "pink")) +
+  labs(
+    title = "Box Plot: Annual Income vs Spending Score",
+    x = "Annual Income",
+    y = "Spending Score",
+    fill = "Gender"
+  )
+```
+
+In the Box plot depicting Annual Income versus Spending Score, distinct spending patterns emerge between men and women. Women tend to have a more moderate income range, typically falling between 25 and 75, and their corresponding spending scores span from above 30 to just below 75. The median spending score for women, represented at the 50th percentile, is 50, indicating a balanced expenditure trend within this group. On the other hand, men exhibit a higher income range, often exceeding 75 and reaching around 125, with spending scores ranging from approximately 25 to 65. The 50th percentile spending score for men is also 50, suggesting a consistent spending tendency among this demographic. Interestingly, neither group contains any outliers, emphasizing a stable and predictable spending behavior within the specified income brackets. This trend underscores the importance of income levels in shaping spending habits, with both genders displaying a propensity for balanced expenditures relative to their respective income ranges. Businesses can leverage these insights to tailor their offerings and marketing strategies, ensuring alignment with the consistent spending patterns observed in these distinct income groups.
+
+```{r}
+install.packages("plotly")
+library(plotly)
+# Create a 3D scatter plot using plotly
+plot_ly(data = mall_data, x = ~AnnualIncome, y = ~SpendingScore, z = ~Gender, 
+        color = ~Gender, size = 4, type = "scatter3d", mode = "markers") %>%
+  layout(scene = list(xaxis = list(title = "Annual Income"),
+                     yaxis = list(title = "Spending Score"),
+                     zaxis = list(title = "Gender")),
+         title = "3D Scatter Plot: Annual Income vs. Spending Score by Gender",
+         margin = list(l = 0, r = 0, b = 0, t = 0))
+
+```
+
+1.  **Income and Age:** The plot illustrates a prominent cluster of points between the ages of 30 and 50, indicating that individuals within this age range tend to have the highest incomes. This cluster suggests a strong positive correlation between age and income, emphasizing that middle-aged customers generally have higher earnings compared to younger and older age groups.
+
+2.  **Spending Score and Age:** In the Spending Score dimension, there is a distinct concentration of extravagant spenders, primarily under the age of 40. Customers below this age threshold exhibit higher spending scores, indicating a greater willingness to spend on products and services. As customers age beyond 40, their spending scores tend to decrease, indicating a more conservative spending behavior. The peak around 60 points in spending scores among customers above 40 suggests a spending limit or a shift in spending priorities as customers enter a more mature life stage.
+
+3.  **Gender Differences:** Notably, the 3D scatter plot reveals that gender has minimal impact when analyzing the income and spending patterns of customers. The points representing different genders are scattered across the plot without forming distinct clusters. This lack of gender-based clustering indicates that income and spending behavior are not strongly correlated with gender in this dataset. It suggests that other factors, such as age and individual preferences, play a more significant role in determining customers' financial behavior and spending habits.
+
+In summary, the 3D scatter plot effectively captures the complex relationships between income, spending score, and age, emphasizing the importance of age as a key factor influencing both income levels and spending behavior. Additionally, the plot highlights that gender does not significantly influence these patterns, indicating that businesses should focus more on age-related marketing strategies to cater to the diverse needs and behaviors of their customer base.
+
+```{r}
+ggplot(mall_data, aes(x = AnnualIncome, y = SpendingScore)) +
+  geom_bin2d() +
+  scale_fill_viridis_c() +  # You can use different color scales, here viridis
+  labs(
+    title = "Heatmap: Annual Income vs. Spending Score",
+    x = "Annual Income",
+    y = "Spending Score"
+  ) +
+  theme_minimal()
+```
+
+The heatmap visually summarizes key insights about mall customers' spending behavior. It confirms that individuals aged 30 to 50 tend to have higher incomes, while the most extravagant spenders are typically under 40, with Spending Scores peaking around 60 for those above 40. The heatmap reveals diverse spending patterns within specific age and income brackets, with minimal influence from gender. Overall, the heatmap underscores the importance of understanding age-related trends and individual preferences for businesses to effectively target their customer base. We can see that there are 5 clusters in this heatmap.
+
+# **K-means clustering**
+
+I will employ the k-means algorithm, a technique that identifies 'k' centroids (cluster centers) and assigns each individual observation (data point) to the nearest cluster. In our earlier analysis, we established that the key variables influencing consumer behavior are AnnualIncome and SpendingScore. Consequently, the clustering process will exclusively consider these two variables to generate the clusters.
+
+Initially, it's vital to ascertain the optimal number of clusters. To achieve this, I will employ the elbow method from the ClusterR package. This technique involves plotting the explained variation against the number of clusters. The 'elbow' point on the plot signifies the most suitable number of clusters for the analysis.
+
+```{r}
+library(ClusterR)
+
+opt <- Optimal_Clusters_KMeans(mall_data[, 3:4], max_clusters = 10, plot_clusters = TRUE)
+```
+
+The above statement calculates the optimal number of clusters (k) for the K-means algorithm using the Optimal_Clusters_KMeans function. The analysis focuses on the 'AnnualIncome' and 'SpendingScore' variables from the 'mall_data' dataset. The max_clusters = 10 parameter specifies that the algorithm should consider up to 10 clusters. Additionally, the plot_clusters = TRUE option generates visualizations to aid in determining the optimal number of clusters.
+
+Assuming 'AnnualIncome' and 'SpendingScore' because as we saw in the above EDA for the scatter plot for the same we see the cluster formation in the relation if these two features.
+
+Given the challenge of identifying the precise 'elbow' point from the previous plot, we will employ an alternative method known as 'silhouette' analysis. This approach measures how closely an object relates to its own cluster compared to other clusters. By plotting the average silhouette value for a range of 'k' values from 2 to 10, we can pinpoint the highest value. This optimal 'k' value will help us determine the most suitable number of clusters for our analysis.
+
+```{r}
+opt <- Optimal_Clusters_KMeans(mall_data[, 3:4], max_clusters = 10, plot_clusters = T, criterion = 'silhouette')
+```
+
+The optimal number of clusters, determined by the highest average silhouette value (which stands at 0.54), corresponds to 'k = 5'. Consequently, we will proceed with utilizing 5 clusters in our subsequent analysis with the k-means algorithm. In the next step, we will assign cluster numbers to each observation in our dataframe and create visualizations by plotting the observations based on their respective clusters using ggplot.
+
+```{r}
+set.seed(36)
+km <- kmeans(mall_data[,3:4], 5)
+mall_data$ClusterNumber <- km$cluster
+```
+
+Sets a random seed for reproducibility using set.seed(36). It then applies the k-means clustering algorithm to the 'AnnualIncome' and 'SpendingScore' columns of the 'mall_data' dataset, aiming to create 5 clusters. The resulting cluster assignments are stored in the 'ClusterNumber' column of the 'mall_data' dataframe. Each data point is assigned to one of the five clusters based on its proximity to the cluster centroids in the 'AnnualIncome' and 'SpendingScore' dimensions.
+
+```{r}
+ggplot(mall_data, aes(x = AnnualIncome, y = SpendingScore, color = as.factor(ClusterNumber))) +
+  geom_point(size = 4, alpha = 0.7, shape = 19) +  
+  geom_smooth(method = "loess", se = FALSE, color = "purple", linetype = "dashed") +
+  labs(title = "Annual Income vs. Spending Score by Cluster Number", 
+       x = "Annual Income", y = "Spending Score",
+       color = "Cluster Number") +
+  scale_color_discrete(name = "Cluster Number") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14, face = "bold")) +
+  geom_text(aes(label = ifelse(Gender == "Male", "M", "F")), vjust = -0.7, hjust = 0.7, size = 3, color = "black")  
+```
+
+The plot clearly illustrates the effectiveness of the k-means algorithm in distinguishing five distinct customer groups. On the left side, there are two distinct customer segments: one with low incomes and high spending scores, and the other with low incomes and low spending scores. Similarly, on the right side, there are two groups of customers with above-average earnings. Lastly, there is a central group characterized by moderate annual earnings and spending habits, falling in between the extremes of the entire customer population. In the subsequent section of my paper, I will proceed to perform hierarchical clustering and compare the outcomes of both methods.
+
+# **Hierarchical clustering**
+
+In this segment of the customer segmentation analysis, I will employ agglomerative hierarchical clustering, a bottom-up approach used to group objects based on their similarity. Initially, each observation forms its own cluster, and as we progress up the hierarchy, pairs of clusters are merged based on their similarities. Before executing the clustering algorithm, I will compare distances between data points. Subsequently, the 'hclust' function will be utilized to conduct the cluster analysis.
+
+```{r}
+dist_customers <- dist(mall_data[,3:4])
+hc_customers <- hclust(dist_customers, method = 'complete')
+```
+
+Calculates the pairwise distances between data points in the 'mall_data' dataset based on the 'AnnualIncome' and 'SpendingScore' columns, forming a distance matrix. The dist function computes these distances.
+
+Subsequently, the hierarchical clustering is performed using the hclust function. In this case, the method used for clustering is 'complete', which means that the distance between two clusters is defined as the maximum distance between their individual components. The hierarchical clustering result is stored in the hc_customers object, representing the dendrogram structure that illustrates the relationships between the data points based on their similarities in 'AnnualIncome' and 'SpendingScore'.
+
+Now, it's crucial to determine the optimal number of clusters for hierarchical clustering. Similar to the approach used in the k-means method, I will utilize the silhouette criterion for this purpose.
+
+```{r}
+library(cluster)
+for(i in 2:7) { 
+  nam <- paste("clust", i, sep = "")
+  assign(nam, cutree(hc_customers, k = i))
+}
+
+par(mfrow = c(3, 2))
+
+plot(silhouette(clust2, dist_customers), col = "green")
+plot(silhouette(clust3, dist_customers), col = 'green')
+plot(silhouette(clust4, dist_customers), col = "green")
+plot(silhouette(clust5, dist_customers), col = "green")
+plot(silhouette(clust6, dist_customers), col = "green")
+plot(silhouette(clust7, dist_customers), col = "green")
+```
+
+1.  Iteration through Cluster Sizes:
+
+-   The code iterates through cluster sizes ranging from 2 to 7 (for(i in 2:7)).
+
+2.  Creating Cluster Assignments:
+
+-   For each cluster size 'i', a cluster assignment is created using hierarchical clustering (cutree(hc_customers, k = i)).
+
+-   The results are stored in variables named clust2, clust3, ..., clust7.
+
+3.  Silhouette Plots:
+
+-   Using the par(mfrow = c(3, 2)) command, a 3x2 layout of plots is set.
+
+-   For each cluster assignment, a silhouette plot is generated using the silhouette function.
+
+-   The silhouette plot visualizes how well each data point fits into its assigned cluster. The 'green' color indicates the silhouette scores, which measure the consistency of points within their clusters. Higher silhouette scores (closer to 1) indicate better-defined clusters.
+
+The code helps visualize the silhouette scores for different cluster sizes, aiding in the selection of the optimal number of clusters. Researchers often choose the cluster size with the highest average silhouette score, as it indicates well-defined and distinct clusters.
+
+Indeed, the analysis reveals that opting for 5 clusters is ideal, given the highest average silhouette width observed for k = 5. Now, we are prepared to visualize the dendrogram. To enhance its interpretability, I will incorporate colors to indicate which observations belong to specific clusters.
+
+```{r}
+install.packages("dendextend")
+library(dendextend)
+
+clust_customers <- cutree(hc_customers, k = 5)
+dend_customers <- as.dendrogram(hc_customers)
+dend_colored <- color_branches(dend_customers, k = 5)
+
+par(mfrow = c(1, 1))
+plot(dend_colored, main = "Cluster Dendrogram for Customers", sub = "Hierarchical Clustering", 
+     xlab = "Customers", ylab = "Height", nodePar = list(lab.cex = 0.8, pch = NA),
+     edgePar = list(col = "black", lwd = 1.5))
+```
+
+1.  The dendextend package is installed and loaded.
+
+2.  The hierarchical clustering result (hc_customers) is converted to a clustering partition (clust_customers).
+
+3.  The hierarchical clustering result is also converted to a dendrogram object (dend_customers).
+
+4.  The branches of the dendrogram are colored according to the clustering partition (dend_colored).
+
+5.  The matrix plot of the dendrogram is created using the plot function, with options for the plot title, subtitle, x-axis label, y-axis label, node parameters, edge parameters, and horizontal orientation.
+
+This above creates a visual representation of the clustering of customers using a dendrogram, with the branches colored according to the resulting clusters.
+
+To complete the analysis, we'll create a new data frame that includes the original data points along with their assigned cluster numbers. This will allow us to visualize the clustering results and gain insights into the groupings of the observations.
+
+```{r}
+segment_customers <- mutate(mall_data, cluster = clust_customers)
+segment_customers = subset(segment_customers, select = -c(ClusterNumber))
+gender_symbols <- c("Male" = 16, "Female" = 17)
+```
+
+Performing clustering analysis on mall data and creates segments based on the customers' behavior and demographics.
+
+-   The code uses the dplyr package to load the mall_data dataset and to manipulate it.
+
+-   The scale function from the dplyr package is used to scale the features of the dataset. Scaling helps improve the accuracy of the clustering algorithm by ensuring that all features are on the same scale.
+
+-   The clust_customers object is created by using the kmeans function from the stats package. This function performs k-means clustering, where each observation belongs to one of the k clusters.
+
+-   The mutate function from the dplyr package is used to add a new column to the dataset called cluster. This column contains the cluster number that each observation belongs to.
+
+-   The subset function is used to remove the ClusterNumber column from the segment_customers dataset.
+
+-   Finally, the gender_symbols vector is created to represent the gender symbols in the segment_customers dataset.
+
+Creating a new dataset called segment_customers with customer data, cluster assignments, and gender symbols. Each observation in this dataset represents a unique customer, and the cluster assignment indicates which segment this customer belongs to.
+
+```{r}
+# Plot the scatter plot with clustered data and enhancements
+ggplot(segment_customers, aes(x = AnnualIncome, y = SpendingScore, color = factor(cluster))) +
+  geom_point(size = 4, alpha = 0.7, shape = 16) +
+  geom_point(aes(shape = Gender), size = 4, alpha = 0.7) +
+  scale_shape_manual(values = gender_symbols) +
+  labs(title = "Annual Income vs. Spending Score by Cluster",
+       x = "Annual Income", y = "Spending Score",
+       color = "Cluster Number", shape = "Gender") +
+  theme_minimal() +
+  theme(legend.position = "bottom", 
+        legend.title = element_text(face = "bold"),
+        plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14, face = "bold")) +
+  geom_smooth(method = "loess", se = FALSE, color = "purple", linetype = "dashed")
+```
+
+The graph obtained from hierarchical clustering closely resembles the one generated using k-means clustering. With the exception of a few data points that are now categorized as having a medium spending score and annual income, all other observations remain in the same groups as they were in the previous clustering. By examining the "segment_customers" dataframe, we can gain insights into the characteristics of each group.
+
+```{r}
+segment_customers %>% group_by(cluster, Gender) %>%
+  summarise_all(list(mean)) %>% arrange(cluster)
+```
+
+-   Loading the dplyr package to perform data manipulation and analysis.
+
+-   Creating a kmeans clustering model called clust_customers using the kmeans function from the stats package. Scale the features of the dataset before clustering.
+
+-   After clustering, create a new dataset called segment_customers using the mutate function from the dplyr package. This new dataset includes the cluster assignments for each customer.
+
+-   Then use the group_by function from the dplyr package to group the customers based on their cluster and gender.
+
+-   The summarise_all function is used to calculate the mean value for each feature of the customers in each group.
+
+-   Using the arrange function from the dplyr package to sort the groups based on the cluster number.
+
+The final output of this code is a new dataset called segment_customers, where each observation represents a unique customer and the cluster assignment indicates which segment this customer belongs to. Additionally, the Gender column is filled with the corresponding gender symbols.
+
+The first cluster comprises middle-aged men and women with modest annual incomes and spending scores. In contrast, the second cluster includes young men and women who, despite having limited incomes, exhibit high spending tendencies. The third cluster, the most populous, consists of men and women in their forties with middle-income levels and moderate spending habits. Cluster four is primarily composed of individuals in their early thirties with high earnings and a penchant for significant spending. Finally, cluster five consists of women with an average age of 44 and men with an average age of 39. Similar to those in cluster four, these individuals enjoy high annual incomes but generally refrain from excessive spending.
+
+[**Challenges:**]{.underline}
+
+The analysis of mall customer data posed challenges in determining optimal cluster numbers, managing outliers, and interpreting results effectively. Striking a balance between methods like the elbow method and silhouette analysis was crucial. Addressing outliers and aligning clusters with real-world customer behavior demanded careful consideration and domain expertise. Exploring demographics beyond gender and navigating ethical concerns underscored the complexity of customer segmentation. Despite these challenges, the analysis yielded valuable insights, emphasizing the continuous need for refinement to guide strategic business decisions accurately.
+
+# Conclusion
+
+In conclusion, the analysis of the mall customer data has provided valuable insights into customer behavior and demographics. Through exploratory data analysis (EDA), we identified key trends such as the concentration of customers in the 30 to 35-year-old age group and the significant income disparity among customers. Gender analysis revealed nuanced differences in spending and income patterns between men and women, although gender had minimal impact on customer segmentation.
+
+Using both k-means and hierarchical clustering methods, we successfully categorized customers into five distinct segments based on their annual income and spending scores. These segments highlighted diverse consumer profiles:
+
+1.  **Cluster 1:** Middle-aged individuals with moderate incomes and spending habits.
+
+2.  **Cluster 2:** Young customers with limited incomes but high spending tendencies.
+
+3.  **Cluster 3:** Middle-aged customers with moderate incomes and moderate spending habits (largest cluster).
+
+4.  **Cluster 4:** Individuals in their early thirties with high incomes and significant spending habits.
+
+5.  **Cluster 5:** Customers, primarily women, with high incomes but conservative spending habits, generally in their late thirties to early forties.
+
+These segments offer valuable insights for targeted marketing strategies. For instance, Cluster 4 represents a lucrative market segment of high earners with substantial spending capacity, while Cluster 2 represents young customers with the potential for future growth in spending.
+
+Understanding these customer segments enables businesses to tailor their marketing efforts, product offerings, and customer experiences to better meet the diverse needs of their clientele. Additionally, this analysis provides a foundation for further in-depth studies and strategic decision-making aimed at maximizing customer satisfaction and business profitability.

@@ -1,0 +1,189 @@
+---
+title: "R Notebook"
+output: html_notebook
+editor_options: 
+  markdown: 
+    wrap: sentence
+---
+
+# Install packages
+
+```{r}
+install.packages("tidyverse")
+install.packages("ggplot2")
+install.packages("skimr")
+```
+
+# Load packages
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(skimr)
+```
+
+# Installing and loading the Palmer Penguins dataset
+
+```{r}
+install.packages("palmerpenguins")
+
+library(palmerpenguins)
+data("penguins")
+```
+
+# Display the first few rows of the penguins dataset
+
+```{r}
+head(penguins)
+```
+
+# Brief description of the dataset's variables.
+
+```{r}
+unique_species <- unique(penguins$species)
+unique_island <- unique(penguins$island)
+unique_year <- unique(penguins$year)
+view(unique_species)
+view(unique_island)
+view(unique_year)
+```
+
+-   There 8 columns and 344 observations, the columns there described below:
+
+1.  species: The species of the penguin (Adelie, Chinstrap, Gentoo).
+
+2.  island: The island where the penguin was found (Biscoe, Dream, Torgersen).
+
+3.  bill_length_mm: The length of the penguin's bill in millimeters.
+
+4.  bill_depth_mm: The depth of the penguin's bill in millimeters.
+
+5.  flipper_length_mm: The length of the penguin's flipper in millimeters.
+
+6.  body_mass_g: The body mass of the penguin in grams.
+
+7.  sex: The gender of the penguin (Male, Female).
+
+8.  year: The year the data was collected (2007,2008,2009)
+
+# Summary of the dataset
+
+```{r}
+summary(penguins)
+```
+
+# Summary based on penguin species using the `group_by` and `summarize` functions
+
+```{r}
+penguins %>%
+    drop_na(body_mass_g) %>%
+    group_by(species) %>%
+    summarise(
+        body_mass_kg_mean = mean(body_mass_g / 1000),
+        body_mass_kg_min = min(body_mass_g / 1000),
+        body_mass_kg_max = max(body_mass_g / 1000)
+    )
+
+```
+
+# Insights gained from the summarization process
+
+-   There are 3 species of penguins Adelie, Chinstrap and gentoo,the numbers species present in this dataset are 152,68 and 124 respectively.There are 3 differnt islands Biscoe, Dream and Torgersen where penguins are located and there population there is 168 , 124 and 52 respectively.
+    There are 19 missing values in total, 2 in each column such as bill_length_mm, bill_depth_mm, flipper_length_mm and body_mass_g.
+    But sex has the most missing value 11 and in that column sex is defined for 165 female and 168 male penguins.
+    We also understand the mean, median, min, max, 1st quadrant and 3rd quadrant of the numeric columns.
+    The body mass of Adelie and Chinstrap penguins are approximately similar where in comparison the body mass of Gentoo penguins are higher.
+
+# Applying skmir function to package
+
+```{r}
+skim(penguins)
+```
+
+-   The information given by summary and skim are quite similar the difference I noticed during using those were skim gives more visual representation of data.
+    Like 3 different windows.
+
+-   Where first contains data summary in accordance to name, columns, data types of columns.
+
+-   Second window gives character column where it give missing values, completion rate, order, unique value count and the count of those unique values.
+
+-   Third window gives numeric columns it gives some similar data as second window but as numeric values are not unique it gives the mean, sd, p0, p25, p50, p75, p100 and histogram.
+
+# Data Visualization
+
+Scatter Plot :
+
+```{r}
+ggplot(
+  data = penguins,
+  mapping = aes(x = flipper_length_mm, y = body_mass_g)
+) +
+  geom_point(mapping = aes(color = species, shape = species)) +
+  geom_smooth(method = "lm")
+```
+
+Bar Plot :
+
+```{r}
+ggplot(penguins, aes(x=island, fill=species)) +
+  geom_bar()
+```
+
+Box Plot :
+
+```{r}
+ggplot(penguins, aes(x=species, y=body_mass_g)) +
+  geom_boxplot()
+```
+
+Histogram :
+
+```{r}
+ggplot(penguins, aes(x=body_mass_g)) +
+  geom_histogram(bandwidth = 720)
+```
+
+labs function is for labeling, heading and coloring the attributes :- body mass and flipper length
+
+```{r}
+ggplot(
+  data = penguins,
+  mapping = aes(x = flipper_length_mm, y = body_mass_g)
+) +
+  geom_point(aes(color = species, shape = species)) +
+  geom_smooth(method = "lm") +
+  labs(
+    title = "Body mass VS flipper length",
+    subtitle = "Dimensions for Adelie, Chinstrap, and Gentoo Penguins",
+    x = "Flipper length in mm", y = "Body mass in grams ",
+    color = "Species", shape = "Species"
+  )
+```
+
+# Project report and Interpretation
+
+The Plamer penguin dataset has 344 observations of three different species of penguins located on three different islands.
+
+-   Species: Adelie, Chinstrap and gentoo the numbers species present in this dataset are 152, 68 and 124 respectively.
+
+-   Islands: Biscoe, Dream and Torgersen where penguins are located and there population there is 168 , 124 and 52 respectively.
+
+-   There are total 19 missing values :
+
+    -   2 in each column such as bill_length_mm, bill_depth_mm, flipper_length_mm and body_mass_g.
+
+    -   Sex has the most missing value 11 and in that column sex is defined for 165 female and 168 male penguins.
+
+-   The body mass of Adelie and Chinstrap penguins are approximately similar where in comparison the body mass of Gentoo penguins are higher.
+
+-   There are majorly Gentoo penguin in Biscoe island and in Dream island there is almost equal population of Chinstrap and Adelie penguin.
+    In Torgersen island there are only Adelie penguins.
+    Adelie penguins are present on all the island.
+
+    # Importance of R using tidyverse
+
+    R and the tidyverse form a powerful combination for data analysis, offering a comprehensive ecosystem of packages and tools.
+    With a focus on import, tidying, data manipulation and visualization, these steps are important for the perfect presentation with using ggplot2.
+    The tidyverse enhances R's capabilities with packages like dplyr and ggplot2, simplifying data preprocessing and visualization tasks.
+    It is easy to code in compare to other languages and have great accessibility to non coders by helping them in every step using help feature and many other features in the IDE.
+    It marjorly foused on visualizing the data rather than complex with coding regulations.
