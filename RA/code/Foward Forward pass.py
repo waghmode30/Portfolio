@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[3]:
-
 
 # Loading the training data through drive
 
@@ -254,9 +252,6 @@ y_pred = predict(x_test, w1, b1, w2, b2, w3, b3)
 # Calculate accuracy
 accuracy = np.mean(y_pred == y_test)
 print("Test Accuracy: {:.2f}%".format(accuracy * 100))
-
-
-# In[ ]:
 
 
 
